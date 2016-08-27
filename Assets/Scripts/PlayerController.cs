@@ -5,6 +5,7 @@ using System.Collections;
 public class PlayerController : MonoBehaviour
 {
     public float speed = 5;
+    public float lookSpeed = 5;
 
     public AudioSource shotSoundEffect;
     public float secondsBetweenShots = 0.1f;
@@ -39,7 +40,7 @@ public class PlayerController : MonoBehaviour
         float mouseVertical = Input.GetAxis("Mouse Y");
 
         body.MovePosition(transform.position + (transform.forward * vertical + transform.right * horizontal).normalized * speed * Time.deltaTime);
-        transform.Rotate(new Vector3(0, mouseHorizontal, 0));
+        transform.Rotate(new Vector3(0, mouseHorizontal * lookSpeed * Time.deltaTime, 0));
         rotateAboutX(-mouseVertical);
 
         if (Input.GetButton("Fire1") && Time.time > lastShot + secondsBetweenShots)
