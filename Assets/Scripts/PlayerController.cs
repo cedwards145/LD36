@@ -5,6 +5,14 @@ using System.Collections;
 public class PlayerController : MonoBehaviour
 {
     public float speed = 5;
+
+    public AudioSource shotSoundEffect;
+    public float secondsBetweenShots = 0.1f;
+    private float lastShot;
+
+    public int maxHealth = 100;
+    public int currentHealth;
+
     private new Camera camera;
     private Rigidbody body;
 
@@ -16,6 +24,9 @@ public class PlayerController : MonoBehaviour
     {
         body = GetComponent<Rigidbody>();
         camera = GetComponentInChildren<Camera>();
+        currentHealth = maxHealth;
+
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
     // Update is called once per frame
@@ -29,9 +40,34 @@ public class PlayerController : MonoBehaviour
 
         body.MovePosition(transform.position + (transform.forward * vertical + transform.right * horizontal).normalized * speed * Time.deltaTime);
         transform.Rotate(new Vector3(0, mouseHorizontal, 0));
-        camera.transform.Rotate(-mouseVertical, 0, 0);
+        rotateAboutX(-mouseVertical);
+
+        if (Input.GetButton("Fire1") && Time.time > lastShot + secondsBetweenShots)
+            shoot();
+    }
+
+    void rotateAboutX(float value)
+    {
+        camera.transform.Rotate(value, 0, 0);
 
         camera.transform.localRotation = ClampRotationAroundXAxis(camera.transform.localRotation);
+    }
+
+    void shoot()
+    {
+        Ray ray = camera.ScreenPointToRay(new Vector2(Screen.width / 2, Screen.height / 2));
+        RaycastHit hit;
+        Debug.DrawRay(transform.position, ray.direction);
+
+        if (Physics.Raycast(ray, out hit, 100, LayerMask.GetMask("Enemies")))
+        {
+            EnemyController enemy = hit.collider.GetComponent<EnemyController>();
+            enemy.takeDamage(20);
+        }
+
+        rotateAboutX(Random.Range(-0.75f, -1.25f));
+        shotSoundEffect.Play();
+        lastShot = Time.time;
     }
 
     Quaternion ClampRotationAroundXAxis(Quaternion q)
